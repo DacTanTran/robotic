@@ -1,7 +1,8 @@
 
 #include <Servo.h>
 Servo servoSG90;
-
+int st_pos = 0; // khoi tao gia tri goc ban dau cua servo
+int end_pos = 45; // gia tri cuoi cua servo
 
 //L298N driver motor
 
@@ -128,16 +129,17 @@ analogWrite(ENA, 0);
 analogWrite(ENB, 0);
 }
 void servo_up() {
-  for(int angle = 0 ; angle = 45; angle++)
+  for(int angle = st_pos ; angle = end_pos ; angle++)
   {
   servoSG90.write(angle);
-  delay(10)
+  delay(10);
   }
 }
 
 void servo_down() {
-  for(int angle = 45; angle >= 0; angle-=1)
+  for(int angle = end_pos; angle >= st_pos ; angle-=1)
   {
   servoSG90.write(angle);
+  delay(10);
   }
 }
