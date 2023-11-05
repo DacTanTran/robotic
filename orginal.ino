@@ -1,4 +1,3 @@
-
 #include <Servo.h>
 #include <Arduino.h>
 
@@ -6,7 +5,7 @@
 #define ch1 2
 #define ch2 4
 
-int RCValue, ch1Val, ch2Val;
+int ch1Val, ch2Val;
 
 //L298N driver motor
 const int ENA = 11;  // kết nối với chân ENA
