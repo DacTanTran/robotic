@@ -4,97 +4,242 @@
 // CHANNELS OF TX
 #define ch1 2
 #define ch2 4
+#define ch6 11
 
-int ch1Val, ch2Val, Speed=225;
+int ch1Val, ch2Val, ch6Val, Speed=225;
 
-//L298N driver motor
-const int ENA = 5;  // kết nối với chân ENA
-const int IN1 = 6;  // kết nối với chân IN1
-const int IN2 = 7;  // kết nối với chân IN2
-const int IN3 = 8;  // kết nối với chân IN3
-const int IN4 = 9;  // kết nối với chân IN4
-const int ENB = 10;  // kết nối với chân ENB
+#define m1 8  //Right Motor MA1
+#define m2 9  //Right Motor MA2
+#define m3 6  //Left Motor MB1
+#define m4 7  //Left Motor MB2
+#define e1 10  //Right Motor e1ble Pin EA
+#define e2 5 //Left Motor e1ble Pin EB
+
+//**********5 Channel IR Sensor Connection**********//
+#define ir1 A0
+#define ir2 A1
+#define ir3 A2
+#define ir4 A3 
+#define ir5 A4
+//*************************************************//
 
 void setup() {
-  pinMode(ENA, OUTPUT);
-  pinMode(IN1, OUTPUT);
-  pinMode(IN2, OUTPUT);
-  pinMode(IN3, OUTPUT);
-  pinMode(IN4, OUTPUT);
-  pinMode(ENB, OUTPUT);
+  pinMode(m1, OUTPUT);
+  pinMode(m2, OUTPUT);
+  pinMode(m3, OUTPUT);
+  pinMode(m4, OUTPUT);
+  pinMode(e1, OUTPUT);
+  pinMode(e2, OUTPUT);
+  pinMode(ir1, INPUT);
+  pinMode(ir2, INPUT);
+  pinMode(ir3, INPUT);
+  pinMode(ir4, INPUT);
+  pinMode(ir5, INPUT);
+
   pinMode(ch1, INPUT);
   pinMode(ch2, INPUT);
+  pinMode(ch6, INPUT);
 
   Serial.begin(9600);
 }
 
-
 void loop() {
-  ch1Val = pulseIn(ch1, HIGH);
-  ch2Val = pulseIn(ch2, HIGH);
-  // // CHECK PPM FROM TX
-  Serial.println(ch1Val);
-  //Serial.println(ch2Val);
+  ch6Val = pulseIn(ch6, HIGH);
+  if (ch6Val <= 1500){ // ON
+    doline();
+  } else {
+    ch1Val = pulseIn(ch1, HIGH);
+    ch2Val = pulseIn(ch2, HIGH);
+    // // CHECK PPM FROM TX
+    //Serial.println(ch1Val);
+    Serial.println(ch2Val);
 
-  if((ch2Val>=1600) && (ch2Val<=1800)) forward();
-  else if((ch2Val>=1300) && (ch2Val<=1500))back(); 
-  else if((ch1Val<=1500) && (ch1Val>=1300))right();
-  else if((ch1Val>=1600) && (ch1Val<=1800))left();
-  else Stop();
-
+    if((ch2Val>=1600) && (ch2Val<=1800)) forward();
+    else if((ch2Val>=1300) && (ch2Val<=1500))back(); 
+    else if((ch1Val<=1500) && (ch1Val>=1300))right();
+    else if((ch1Val>=1600) && (ch1Val<=1800))left();
+    else Stop();
+  }
 }
 
+void doline(){
+  //Reading Sensor Values
+  int s1 = digitalRead(ir1);  //Left Most Sensor
+  int s2 = digitalRead(ir2);  //Left Sensor
+  int s3 = digitalRead(ir3);  //Middle Sensor
+  int s4 = digitalRead(ir4);  //Right Sensor
+  int s5 = digitalRead(ir5);  //Right Most Sensor
+  int speeddoline=150;
+  //if only middle sensor detects black line
+  if((s1 == 1) && (s2 == 1) && (s3 == 0) && (s4 == 1) && (s5 == 1))
+  {
+    //going forward with full speed 
+    analogWrite(e1, speeddoline); //you can adjust the speed of the motors from 0-255
+    analogWrite(e2, speeddoline); //you can adjust the speed of the motors from 0-255
+    digitalWrite(m1, HIGH);
+    digitalWrite(m2, LOW);
+    digitalWrite(m3, HIGH);
+    digitalWrite(m4, LOW);
+  }
+  
+  //if only left sensor detects black line
+  if((s1 == 1) && (s2 == 0) && (s3 == 1) && (s4 == 1) && (s5 == 1))
+  {
+    //going right with full speed 
+    analogWrite(e1, speeddoline); //you can adjust the speed of the motors from 0-255
+    analogWrite(e2, speeddoline); //you can adjust the speed of the motors from 0-255
+    digitalWrite(m1, HIGH);
+    digitalWrite(m2, LOW);
+    digitalWrite(m3, LOW);
+    digitalWrite(m4, LOW);
+  }
+  
+  //if only left most sensor detects black line
+  if((s1 == 0) && (s2 == 1) && (s3 == 1) && (s4 == 1) && (s5 == 1))
+  {
+    //going right with full speed 
+    analogWrite(e1, speeddoline); //you can adjust the speed of the motors from 0-255
+    analogWrite(e2, speeddoline); //you can adjust the speed of the motors from 0-255
+    digitalWrite(m1, HIGH);
+    digitalWrite(m2, LOW);
+    digitalWrite(m3, LOW);
+    digitalWrite(m4, HIGH);
+  }
+
+  //if only right sensor detects black line
+  if((s1 == 1) && (s2 == 1) && (s3 == 1) && (s4 == 0) && (s5 == 1))
+  {
+    //going left with full speed 
+    analogWrite(e1, speeddoline); //you can adjust the speed of the motors from 0-255
+    analogWrite(e2, speeddoline); //you can adjust the speed of the motors from 0-255
+    digitalWrite(m1, LOW);
+    digitalWrite(m2, LOW);
+    digitalWrite(m3, HIGH);
+    digitalWrite(m4, LOW);
+  }
+
+  //if only right most sensor detects black line
+  if((s1 == 1) && (s2 == 1) && (s3 == 1) && (s4 == 1) && (s5 == 0))
+  {
+    //going left with full speed 
+    analogWrite(e1, speeddoline); //you can adjust the speed of the motors from 0-255
+    analogWrite(e2, speeddoline); //you can adjust the speed of the motors from 0-255
+    digitalWrite(m1, LOW);
+    digitalWrite(m2, HIGH);
+    digitalWrite(m3, HIGH);
+    digitalWrite(m4, LOW);
+  }
+
+  //if middle and right sensor detects black line
+  if((s1 == 1) && (s2 == 1) && (s3 == 0) && (s4 == 0) && (s5 == 1))
+  {
+    //going left with full speed 
+    analogWrite(e1, speeddoline); //you can adjust the speed of the motors from 0-255
+    analogWrite(e2, speeddoline); //you can adjust the speed of the motors from 0-255
+    digitalWrite(m1, LOW);
+    digitalWrite(m2, LOW);
+    digitalWrite(m3, HIGH);
+    digitalWrite(m4, LOW);
+  }
+
+  //if middle and left sensor detects black line
+  if((s1 == 1) && (s2 == 0) && (s3 == 0) && (s4 == 1) && (s5 == 1))
+  {
+    //going right with full speed 
+    analogWrite(e1, speeddoline); //you can adjust the speed of the motors from 0-255
+    analogWrite(e2, speeddoline); //you can adjust the speed of the motors from 0-255
+    digitalWrite(m1, HIGH);
+    digitalWrite(m2, LOW);
+    digitalWrite(m3, LOW);
+    digitalWrite(m4, LOW);
+  }
+
+  //if middle, left and left most sensor detects black line
+  if((s1 == 0) && (s2 == 0) && (s3 == 0) && (s4 == 1) && (s5 == 1))
+  {
+    //going right with full speed 
+    analogWrite(e1, speeddoline); //you can adjust the speed of the motors from 0-255
+    analogWrite(e2, speeddoline); //you can adjust the speed of the motors from 0-255
+    digitalWrite(m1, HIGH);
+    digitalWrite(m2, LOW);
+    digitalWrite(m3, LOW);
+    digitalWrite(m4, LOW);
+  }
+
+  //if middle, right and right most sensor detects black line
+  if((s1 == 1) && (s2 == 1) && (s3 == 0) && (s4 == 0) && (s5 == 0))
+  {
+    //going left with full speed 
+    analogWrite(e1, speeddoline); //you can adjust the speed of the motors from 0-255
+    analogWrite(e2, speeddoline); //you can adjust the speed of the motors from 0-255
+    digitalWrite(m1, LOW);
+    digitalWrite(m2, LOW);
+    digitalWrite(m3, HIGH);
+    digitalWrite(m4, LOW);
+  }
+
+  //if all sensors are on a black line
+  if((s1 == 0) && (s2 == 0) && (s3 == 0) && (s4 == 0) && (s5 == 0))
+  {
+    //stop
+    digitalWrite(m1, LOW);
+    digitalWrite(m2, LOW);
+    digitalWrite(m3, LOW);
+    digitalWrite(m4, LOW);
+  }
+}
 
 void forward() {
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);   
+  digitalWrite(m1, HIGH);
+  digitalWrite(m2, LOW);
+  digitalWrite(m3, HIGH);
+  digitalWrite(m4, LOW);
+  
 
-    analogWrite(ENA, Speed);
-    analogWrite(ENB, Speed);
+  analogWrite(e1, Speed);
+  analogWrite(e2, Speed);
 
 }
 
 void back() {   
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
+  digitalWrite(m1, LOW);
+  digitalWrite(m2, HIGH);
+  digitalWrite(m3, LOW);
+  digitalWrite(m4, HIGH); 
 
-    analogWrite(ENA, Speed);
-    analogWrite(ENB, Speed);
+  analogWrite(e1, Speed);
+  analogWrite(e2, Speed);
  
 }
 
 void left() {
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
+  digitalWrite(m1, LOW);
+  digitalWrite(m2, HIGH);
+  digitalWrite(m3, HIGH);
+  digitalWrite(m4, LOW);
 
-    analogWrite(ENA, Speed);
-    analogWrite(ENB, Speed);
+  analogWrite(e1, Speed);
+  analogWrite(e2, Speed);
 }
 
 void right() {  
-  digitalWrite(IN1, HIGH);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, HIGH);
+  digitalWrite(m1, HIGH);
+  digitalWrite(m2, LOW);
+  digitalWrite(m3, LOW);
+  digitalWrite(m4, HIGH);
 
-  analogWrite(ENA, Speed);
-  analogWrite(ENB, Speed);
+  analogWrite(e1, Speed);
+  analogWrite(e2, Speed);
 }
 
 void Stop() {
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, LOW);
-  digitalWrite(IN3, LOW);
-  digitalWrite(IN4, LOW);
+  digitalWrite(m1, LOW);
+  digitalWrite(m2, LOW);
+  digitalWrite(m3, LOW);
+  digitalWrite(m4, LOW);
 
-  analogWrite(ENA, 0);
-  analogWrite(ENB, 0);
+  analogWrite(e1, 0);
+  analogWrite(e2, 0);
 }
 
 // void servo_up() {
